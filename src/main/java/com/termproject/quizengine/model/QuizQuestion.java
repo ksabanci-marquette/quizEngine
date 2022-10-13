@@ -4,6 +4,8 @@ import lombok.Data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -20,5 +22,11 @@ public class QuizQuestion {
     @NotNull
     @Column(name = "question_id")
     private Long questionId;
+
+/*
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL)
+    @JoinColumn(name = "question_id")
+    private List<Question> questionList = new ArrayList<>();
+*/
 
 }

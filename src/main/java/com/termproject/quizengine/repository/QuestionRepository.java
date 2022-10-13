@@ -1,6 +1,7 @@
 package com.termproject.quizengine.repository;
 
 import com.termproject.quizengine.model.Question;
+import com.termproject.quizengine.model.QuizQuestion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -13,5 +14,8 @@ public interface QuestionRepository extends JpaRepository<Question, Long>,
 
 
     List<Question> findAll();
+
+    List<Question> findAllByIdIn(List<Long> idList);
+
 
 }

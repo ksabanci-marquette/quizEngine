@@ -1,8 +1,6 @@
 package com.termproject.quizengine.model;
 
-
 import lombok.Data;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -46,7 +44,7 @@ public class Quiz {
     @Column(nullable = false)
     private int duration;
 
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL)
-    @JoinColumn(name = "quiz_id")
-    private List<QuizQuestion> quizQuestionList = new ArrayList<>();
+//    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL)
+//    @JoinColumn(name = "quiz_id")
+//    private List<QuizQuestion> quizQuestionList = new ArrayList<>();
 }
