@@ -5,7 +5,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.sql.Timestamp;
@@ -23,27 +23,31 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
+    @NotNull
     @Size(max = 255)
+    @Column(nullable = false)
     private String name;
 
-    @NotBlank
+    @NotNull
     @Size(max = 255)
+    @Column(nullable = false)
     private String lastname;
 
-    @NotBlank
+    @NotNull
     @Size(max = 255)
+    @Column(nullable = false)
     private String username;
 
     @JsonIgnore
-    @NotBlank
+    @NotNull
     @Size(max = 255)
+    @Column(nullable = false)
     private String password;
 
-    @NotBlank
+    @NotNull
     @Size(max = 50)
     @Email
-    @Column(name = "email_address")
+    @Column(name = "email_address",nullable = false)
     private String emailAddress;
 
     @Column(name = "reset_date")
