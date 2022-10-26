@@ -36,6 +36,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getUsername(),
                 user.getEmailAddress(),
                 user.getPassword(),
+                user.isAdmin(),
                 Collections.emptyList());
 
         return userPrincipal;
@@ -54,6 +55,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getUsername(),
                 user.getEmailAddress(),
                 user.getPassword(),
+                user.isAdmin(),
                 Collections.emptyList());
 
         return userPrincipal;

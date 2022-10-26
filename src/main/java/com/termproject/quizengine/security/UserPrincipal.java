@@ -15,11 +15,12 @@ public class UserPrincipal implements UserDetails {
     private String username;
     private Collection<? extends GrantedAuthority> authorities;
     private String emailAddress;
+    private Boolean isAdmin;
     @JsonIgnore private String password;
 
 
     public UserPrincipal(Long recordId, String name, String surname,String username,
-                         String emailAddress, String password,
+                         String emailAddress, String password,Boolean isAdmin,
                          Collection<? extends GrantedAuthority> authorities) {
         this.recordId = recordId;
         this.name = name;
@@ -27,6 +28,7 @@ public class UserPrincipal implements UserDetails {
         this.username = username;
         this.emailAddress = emailAddress;
         this.password = password;
+        this.isAdmin = isAdmin;
         this.authorities = authorities;
 
     }

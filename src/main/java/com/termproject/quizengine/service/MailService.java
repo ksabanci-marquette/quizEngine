@@ -95,9 +95,10 @@ public class MailService {
         props.put("mail.smtp.starttls.enable", environment.getProperty("spring.mail.properties.mail.smtp.starttls.enable"));
         props.put("mail.smtps.ssl.checkserveridentity", environment.getProperty("spring.mail.properties.mail.smtps.ssl.checkserveridentity"));
         props.put("mail.smtps.ssl.trust", environment.getProperty("spring.mail.properties.mail.smtps.ssl.trust"));
-        props.put("mail.smtp.host", environment.getProperty("spring.mail.properties.mail.smtp.host"));
-        props.put("mail.smtp.port", environment.getProperty("spring.mail.properties.mail.smtp.port"));
+        props.put("mail.smtp.host", environment.getProperty("spring.mail.host"));
+        props.put("mail.smtp.port", environment.getProperty("spring.mail.port"));
         props.put("mail.smtps.timeout", environment.getProperty("spring.mail.properties.mail.smtps.timeout"));
+        props.put("mail.smtp.debug", true);
         try {
             createMailLog(user, to, subject, content, isMultipart, isHtml, uuid);
             Session session = Session.getInstance(props,
@@ -107,6 +108,7 @@ public class MailService {
                         }
                     });
 
+            session.setDebug(true);
             if("true".equals(sendMail)) {
                 MimeMessage message = new MimeMessage(session);
                 message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
@@ -154,7 +156,7 @@ public class MailService {
             sb.append("        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n");
             sb.append("    </head>\n");
             sb.append("    <body>\n");
-            sb.append("        <p>Sayın ");
+            sb.append("        <p>Dear ");
             sb.append(user.getName());
             sb.append(" ");
             sb.append(user.getLastname());
@@ -193,7 +195,6 @@ public class MailService {
 
             if (user.getEmailAddress() != null && user.getEmailAddress() != "") {
                 sendEmailwithAuth(user, user.getEmailAddress(), title, content, false, true, randomUUIDString);
-
             } else
                 log.debug("email field is null cannot send!", user);
         }

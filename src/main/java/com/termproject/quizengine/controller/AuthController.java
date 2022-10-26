@@ -1,8 +1,7 @@
 package com.termproject.quizengine.controller;
 
-import com.termproject.quizengine.payload.EmailPayload;
-import com.termproject.quizengine.model.User;
 import com.termproject.quizengine.payload.ChangePasswordRequest;
+import com.termproject.quizengine.payload.EmailPayload;
 import com.termproject.quizengine.payload.JwtAuthenticationResponse;
 import com.termproject.quizengine.payload.LoginRequest;
 import com.termproject.quizengine.repository.UserRepository;
@@ -21,11 +20,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -71,12 +71,15 @@ public class AuthController {
 
 
     @PostMapping(path = "/update-password")
-    public void changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
         try {
             userService.updatePassword(changePasswordRequest);
         } catch (Exception e) {
-            throw new RuntimeException("Şifre değiştirme başarısız!");
+ //           throw new RuntimeException("Unsuccesfull !");
+            return ResponseEntity.badRequest().body( "Wrong Key provided");
+
         }
+        return ResponseEntity.ok().body( "Update Password successfull");
     }
 
     @PostMapping(path = "/change-password-for-me")
@@ -102,29 +105,29 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/reset/finish")
-    public RedirectView process(@RequestParam(value = "key") String key) {
-        Optional<User> user = null;
-        String redirectPage = "";
-
-        user = userService.getByPasswordResetKey(key);
-        if (!user.isPresent()) {
-            redirectPage = environment.getProperty("spring.frontend.ChangePasswordPage")+"/:123";
-        } else {
-            redirectPage = environment.getProperty("spring.frontend.ChangePasswordPage")+"/:"+key;
-        }
-
-        RedirectView rv = new RedirectView();
-        rv.setContextRelative(false);
-        rv.setUrl(redirectPage);
-        return rv;
-    }
-
-
-    @GetMapping("/redirect-to-login")
-    public RedirectView redirecttoLogin() {
-
-        return new RedirectView("http://localhost:3000/auth-server/login");
-
-    }
+//    @GetMapping("/reset/finish")
+//    public RedirectView process(@RequestParam(value = "key") String key) {
+//        Optional<User> user = null;
+//        String redirectPage = "";
+//
+//        user = userService.getByPasswordResetKey(key);
+//        if (!user.isPresent()) {
+//            redirectPage = environment.getProperty("spring.frontend.ChangePasswordPage")+"/:123";
+//        } else {
+//            redirectPage = environment.getProperty("spring.frontend.ChangePasswordPage")+"/:"+key;
+//        }
+//
+//        RedirectView rv = new RedirectView();
+//        rv.setContextRelative(false);
+//        rv.setUrl(redirectPage);
+//        return rv;
+//    }
+//
+//
+//    @GetMapping("/redirect-to-login")
+//    public RedirectView redirecttoLogin() {
+//
+//        return new RedirectView("http://localhost:3000/auth-server/login");
+//
+//    }
 }
