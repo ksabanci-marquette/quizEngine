@@ -22,8 +22,7 @@ public class UserQuizGrade {
     @Column(name = "quiz_id")
     private Long quizId;
 
-    @NotNull
-    @Column(name = "grade")
+    @Column(name = "grade",nullable = true)
     private double grade=0.0D;
 
     @NotNull

@@ -50,4 +50,18 @@ public interface UserRepository extends JpaRepository<User, Long>,
     @Query(value = "UPDATE user SET password=:password WHERE id=:id", nativeQuery = true)
     void updatePasswordForId (@Param("id") Long id, @Param("password")String password);
 
+
+
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE user SET reset_key = NULL WHERE id = :id", nativeQuery = true)
+    void deleteKeyForUser (@Param("id") Long id);
+
+
+    @Query(value="SELECT * FROM user WHERE email_address= :email  AND id <> :id", nativeQuery = true)
+    Optional<User> getByEmailAndRecordIdNotEquals(@Param("email") String email, @Param("id") Long id);
+
+    @Query(value="SELECT * FROM user WHERE username= :username AND id <> :id", nativeQuery = true)
+    Optional<User> getByUsernameAndRecordIdNotEquals(@Param("username") String username,  @Param("id") Long id);
+
 }

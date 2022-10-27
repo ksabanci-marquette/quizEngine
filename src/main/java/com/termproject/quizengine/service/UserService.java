@@ -4,6 +4,7 @@ import com.termproject.quizengine.exception.ResourceNotFoundException;
 import com.termproject.quizengine.model.User;
 import com.termproject.quizengine.payload.ChangePasswordRequest;
 import com.termproject.quizengine.payload.EmailPayload;
+import com.termproject.quizengine.payload.UserSummary;
 import com.termproject.quizengine.repository.UserRepository;
 import com.termproject.quizengine.utils.RandomUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
@@ -53,11 +56,12 @@ public class UserService {
         log.debug("Request to updatePassword : {}", dto);
         try {
             String password;
-            if (dto.getPassword() != null && dto.getKey() != null){
+            if (!StringUtils.isEmpty(dto.getPassword())  && !StringUtils.isEmpty(dto.getKey())){
                 User user  = this.getByPasswordResetKey(dto.getKey().substring(1))
                                 .orElseThrow(() -> new ResourceNotFoundException("User", "recordId",dto.getKey()));
                 password = passwordEncoder.encode(dto.getPassword());
                 userRepository.updatePassword(dto.getKey().substring(1), password);
+                userRepository.deleteKeyForUser(user.getId());
             }
         }catch (Exception e){
             throw new RuntimeException("Change Password Failure!");

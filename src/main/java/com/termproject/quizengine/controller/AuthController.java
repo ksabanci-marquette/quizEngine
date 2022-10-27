@@ -83,15 +83,17 @@ public class AuthController {
     }
 
     @PostMapping(path = "/change-password-for-me")
-    public void changePasswordForMe(@RequestBody ChangePasswordRequest changePasswordRequest, @CurrentUser UserPrincipal userPrincipal) {
+    public ResponseEntity<?> changePasswordForMe(@RequestBody ChangePasswordRequest changePasswordRequest, @CurrentUser UserPrincipal userPrincipal) {
         if(!passwordEncoder.encode(changePasswordRequest.getCurrentPassword()).equals(userPrincipal.getPassword()))
         {
-            throw new RuntimeException("Check your current password and try again!");
+            return ResponseEntity.badRequest().body( "Check your current password and try again!");
         }
         try {
             userService.updatePasswordForMe(userPrincipal.getRecordId(),changePasswordRequest.getPassword());
+            return ResponseEntity.ok().body( "Success");
+
         } catch (Exception e) {
-            throw new RuntimeException("Unable to Update Password!");
+            return ResponseEntity.badRequest().body( "Wrong Key provided");
         }
     }
 
@@ -105,29 +107,4 @@ public class AuthController {
         }
     }
 
-//    @GetMapping("/reset/finish")
-//    public RedirectView process(@RequestParam(value = "key") String key) {
-//        Optional<User> user = null;
-//        String redirectPage = "";
-//
-//        user = userService.getByPasswordResetKey(key);
-//        if (!user.isPresent()) {
-//            redirectPage = environment.getProperty("spring.frontend.ChangePasswordPage")+"/:123";
-//        } else {
-//            redirectPage = environment.getProperty("spring.frontend.ChangePasswordPage")+"/:"+key;
-//        }
-//
-//        RedirectView rv = new RedirectView();
-//        rv.setContextRelative(false);
-//        rv.setUrl(redirectPage);
-//        return rv;
-//    }
-//
-//
-//    @GetMapping("/redirect-to-login")
-//    public RedirectView redirecttoLogin() {
-//
-//        return new RedirectView("http://localhost:3000/auth-server/login");
-//
-//    }
 }

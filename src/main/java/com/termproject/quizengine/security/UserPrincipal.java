@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Date;
 
 @Data
 public class UserPrincipal implements UserDetails {
@@ -16,6 +17,7 @@ public class UserPrincipal implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
     private String emailAddress;
     private Boolean isAdmin;
+    private Date creationDate;
     @JsonIgnore private String password;
 
 

@@ -8,6 +8,8 @@ import com.termproject.quizengine.model.QuizQuestion;
 import com.termproject.quizengine.repository.QuestionRepository;
 import com.termproject.quizengine.repository.QuizQuestionRepository;
 import com.termproject.quizengine.repository.QuizRepository;
+import com.termproject.quizengine.security.CurrentUser;
+import com.termproject.quizengine.security.UserPrincipal;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +49,16 @@ public class QuizController {
         log.debug("REST request to get all ");
         try {
             return new ResponseEntity<>(quizRepository.findAll(), HttpStatus.OK);
+        } catch (Exception ex) {
+            return new ResponseEntity<>( ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<?> getAllAvailable(@CurrentUser UserPrincipal userPrincipal) {
+        log.debug("REST request to get all ");
+        try {
+            return new ResponseEntity<>(quizRepository.findQuizzesForUser(userPrincipal.getRecordId()), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>( ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

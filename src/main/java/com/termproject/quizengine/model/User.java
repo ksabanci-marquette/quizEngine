@@ -1,6 +1,7 @@
 package com.termproject.quizengine.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.termproject.quizengine.payload.UserSummary;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -71,4 +72,12 @@ public class User {
     @Column(nullable = false, name = "creation_date")
     private Date creationDate;
 
+
+    public User userSummarytoUser(UserSummary userSummary){
+        this.setEmailAddress(userSummary.getEmail());
+        this.setName(userSummary.getName());
+        this.setLastname(userSummary.getSurname());
+        this.setUsername(userSummary.getUsername());
+        return this;
+    }
 }
