@@ -36,6 +36,7 @@ public class UserController {
     @GetMapping("/me")
     public UserSummary getCurrentUser(@CurrentUser UserPrincipal currentUser) {
         UserSummary userSummary = new UserSummary(
+                currentUser.getRecordId(),
                 currentUser.getUsername(),
                 currentUser.getName(),
                 currentUser.getSurname(),
@@ -50,7 +51,8 @@ public class UserController {
         User user = userRepository
                 .findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
-        UserSummary userSummary = new UserSummary(  user.getUsername(),
+        UserSummary userSummary = new UserSummary( user.getId(),
+                user.getUsername(),
                 user.getName(),
                 user.getLastname(),
                 user.getEmailAddress(),
