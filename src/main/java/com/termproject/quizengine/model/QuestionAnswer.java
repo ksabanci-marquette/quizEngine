@@ -13,7 +13,6 @@ public class QuestionAnswer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
     @Column(name = "question_id")
     private Long questionId;
 

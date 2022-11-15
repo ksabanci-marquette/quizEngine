@@ -64,4 +64,11 @@ public interface UserRepository extends JpaRepository<User, Long>,
     @Query(value="SELECT * FROM user WHERE username= :username AND id <> :id", nativeQuery = true)
     Optional<User> getByUsernameAndRecordIdNotEquals(@Param("username") String username,  @Param("id") Long id);
 
+    @Query(value="SELECT * FROM user WHERE isAdmin = false", nativeQuery = true)
+    List<User> findAllNotAdmin();
+
+
+
+    Optional<User> findFirstByEmailAddress(@Param("email") String email);
+    Optional<User> findFirstByUsername(@Param("username") String username);
 }

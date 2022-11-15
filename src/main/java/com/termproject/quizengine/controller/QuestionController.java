@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 
 @RestController
@@ -28,7 +29,7 @@ public class QuestionController {
     QuestionRepository questionRepository;
 
 
-    @GetMapping
+    @GetMapping("/list")
     public ResponseEntity<?> getAll() {
         log.debug("REST request to get all ");
         try {
@@ -49,7 +50,7 @@ public class QuestionController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> saveOne(@RequestBody @Valid @NotNull Question question) {
+    public ResponseEntity<?> saveOne(@RequestBody  @NotNull Question question) {
         log.debug("REST request to get by id ");
         try {
             questionRepository.save(question);
@@ -60,5 +61,18 @@ public class QuestionController {
         }
     }
 
+
+    @PostMapping("/save-new")
+    public ResponseEntity<?> saveNew(@RequestBody  @NotNull Question question) {
+        try {
+            question.setCreationDate(new Date());
+            question.setUpdateDate(new Date());
+            questionRepository.save(question);
+            return ResponseEntity.ok().body("Success");
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("An error occured!");
+        }
+    }
 
 }

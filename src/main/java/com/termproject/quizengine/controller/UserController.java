@@ -12,10 +12,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 import java.net.URISyntaxException;
+import java.util.Date;
+import java.util.List;
 
 
 @Slf4j
@@ -31,6 +34,9 @@ public class UserController {
 
     @Autowired
     ModelMapper modelMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     @GetMapping("/me")
@@ -61,6 +67,13 @@ public class UserController {
         return userSummary;
     }
 
+    @GetMapping("/list")
+    public ResponseEntity<?> listUsers() {
+
+        return new ResponseEntity ( userRepository.findAllNotAdmin(), HttpStatus.OK) ;
+
+    }
+
 
     @PostMapping("/update")
     public ResponseEntity<?> saveProfile(@NotNull  @RequestBody UserSummary userSummary) throws URISyntaxException {
@@ -84,4 +97,32 @@ public class UserController {
             return ResponseEntity.badRequest().body("An error occured!");
         }
     }
+
+    @PostMapping("/save-new")
+    public ResponseEntity<?> saveNew(@NotNull  @RequestBody UserSummary userSummary) throws URISyntaxException {
+        log.debug("REST request to save UserSummary: {}", userSummary);
+        try {
+
+            User user = new User();
+            user = user.userSummarytoUser(userSummary);
+
+            if (userRepository.findFirstByEmailAddress(userSummary.getEmail()).isPresent()) {
+                throw  new RuntimeException(userSummary.getEmail() +" email already taken!");
+            }
+            if (userRepository.findFirstByUsername(userSummary.getUsername()).isPresent()) {
+                throw  new RuntimeException(userSummary.getUsername() +" username already taken!");
+            }
+
+            user.setPassword( passwordEncoder.encode("00000ldksajd--"));
+            user.setCreationDate(new Date());
+
+            userRepository.save(user);
+
+            return new ResponseEntity (user, HttpStatus.OK);
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+
 }

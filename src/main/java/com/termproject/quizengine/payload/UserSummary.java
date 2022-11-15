@@ -13,7 +13,6 @@ import java.util.Date;
 @NoArgsConstructor
 public class UserSummary {
 
-    @JsonIgnore
     private Long id;
 
     @NotNull

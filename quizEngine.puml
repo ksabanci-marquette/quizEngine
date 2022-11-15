@@ -1,0 +1,382 @@
+@startuml
+interface com.termproject.quizengine.constants.Rights {
+~ String PREFIX
+}
+class com.termproject.quizengine.controller.AuthController {
+~ AuthenticationManager authenticationManager
+~ UserRepository userRepository
+~ JwtTokenProvider tokenProvider
+~ UserService userService
+~ Environment environment
+- PasswordEncoder passwordEncoder
+- {static} Logger logger
++ ResponseEntity<?> authenticateUser(LoginRequest)
++ ResponseEntity<?> changePassword(ChangePasswordRequest)
++ ResponseEntity<?> changePasswordForMe(ChangePasswordRequest,UserPrincipal)
++ ResponseEntity<?> requestPasswordReset(EmailPayload)
+}
+class com.termproject.quizengine.config.ModelMapperConfiguration {
++ ModelMapper modelMapper()
+}
+class com.termproject.quizengine.service.CustomUserDetailsService {
+~ UserRepository userRepository
++ UserDetails loadUserByUsername(String)
++ UserDetails loadUserById(Long)
+}
+class com.termproject.quizengine.payload.UserSummary {
+- Long id
+- String username
+- String name
+- String surname
+- String email
+- Boolean isAdmin
+- Date creationDate
++ <<Create>> UserSummary(Long,String,String)
++ <<Create>> UserSummary(Long,String,String,String,String,Date,Boolean)
+}
+class com.termproject.quizengine.model.User {
+- Long id
+- String name
+- String lastname
+- String username
+- String password
+- String emailAddress
+- Instant resetDate
+- String resetKey
+- boolean isAdmin
+- boolean activated
+- Date creationDate
++ User userSummarytoUser(UserSummary)
+}
+enum com.termproject.quizengine.enums.HardnessLevel {
++  EASY
++  MEDIUM
++  HARD
++  VERYHARD
+}
+class com.termproject.quizengine.model.QuestionAnswer {
+- Long id
+- Long questionId
+- String answerDescription
+- boolean isAnswer
+}
+class com.termproject.quizengine.payload.JwtAuthenticationResponse {
+- String accessToken
+- String tokenType
++ <<Create>> JwtAuthenticationResponse(String)
+}
+interface com.termproject.quizengine.repository.QuizQuestionRepository {
+~ List<QuizQuestion> findAllByQuizId(Long)
+}
+class com.termproject.quizengine.controller.QuestionController {
+- Logger log
+~ Environment environment
+~ QuestionRepository questionRepository
++ ResponseEntity<?> getAll()
++ ResponseEntity<?> getById(Long)
++ ResponseEntity<?> saveOne(Question)
+}
+interface com.termproject.quizengine.repository.QuestionRepository {
+~ List<Question> findAll()
+~ List<Question> findAllByIdIn(List<Long>)
+}
+class com.termproject.quizengine.model.QuizQuestion {
+- Long id
+- Long quizId
+- Long questionId
+}
+interface com.termproject.quizengine.repository.UserQuizGradeRepository {
+~ List<UserQuizGrade> findAll()
+~ Optional<Integer> findMaxAttemptbyQuizandUser(Long,Long)
+}
+class com.termproject.quizengine.controller.QuizController {
+- Logger log
+~ QuizRepository quizRepository
+~ QuizQuestionRepository quizQuestionRepository
+~ QuestionRepository questionRepository
+~ ModelMapper modelMapper
+~ UserRepository userRepository
+~ UserQuizQuestionAnswerRepository userQuizQuestionAnswerRepository
+~ UserQuizGradeRepository userQuizGradeRepository
++ ResponseEntity<?> getAll()
++ ResponseEntity<?> getAllAvailable(UserPrincipal)
++ ResponseEntity<?> getLatest(UserPrincipal)
++ ResponseEntity<?> getById(Long)
++ ResponseEntity<?> saveOne(Quiz)
++ ResponseEntity<?> submit(QuizSubmitPayload,UserPrincipal)
+}
+class com.termproject.quizengine.config.EmailConfig {
+- String host
+- String user
+- String password
+- Boolean debug
++ JavaMailSender getJavaMailSender()
+}
+class com.termproject.quizengine.config.SecurityConfig {
+~ CustomUserDetailsService customUserDetailsService
+- JwtAuthenticationEntryPoint unauthorizedHandler
++ JwtAuthenticationFilter jwtAuthenticationFilter()
++ void configure(AuthenticationManagerBuilder)
++ AuthenticationManager authenticationManagerBean()
++ PasswordEncoder passwordEncoder()
+# void configure(HttpSecurity)
++ CorsFilter corsFilter()
+}
+class com.termproject.quizengine.security.JwtTokenProvider {
+- {static} Logger logger
+- String jwtSecret
+- int jwtExpirationInMs
++ String generateToken(Authentication)
++ Long getUserIdFromJWT(String)
++ boolean validateToken(String)
+}
+class com.termproject.quizengine.payload.LoginRequest {
+- String usernameOrEmail
+- String password
+}
+class com.termproject.quizengine.model.Question {
+- Long id
+- String title
+- String description
+- QuestionType questionType
+- HardnessLevel hardnessLevel
+- Date creationDate
+- Date updateDate
+- List<QuestionAnswer> questionAnswers
+}
+class com.termproject.quizengine.service.UserService {
+- UserRepository userRepository
+- PasswordEncoder passwordEncoder
+- ModelMapper modelMapper
+~ MailService mailService
+- {static} Logger log
++ User findOne(Long)
++ void updatePassword(ChangePasswordRequest)
++ void updatePasswordForMe(Long,String)
++ String requestPasswordReset(EmailPayload)
++ Optional<User> getByPasswordResetKey(String)
+}
+interface com.termproject.quizengine.repository.QuizRepository {
+~ List<Quiz> findAll()
+~ List<Quiz> findQuizzesForUser(Long)
+~ List<UserQuizResultSelectDTO> findLatestQuizResults(Long)
+~ List<UserQuizResultSelectDTO> findAllQuizResults()
+}
+class com.termproject.quizengine.exception.WrongUserNameOrPasswordException {
++ <<Create>> WrongUserNameOrPasswordException(String)
+}
+class com.termproject.quizengine.QuizEngineApplication {
+- {static} Class<QuizEngineApplication> applicationClass
++ <<Create>> QuizEngineApplication()
++ {static} void main(String[])
+# SpringApplicationBuilder configure(SpringApplicationBuilder)
+~ void started()
+}
+class com.termproject.quizengine.constants.AuthoritiesConstants {
++ {static} String ADMIN
++ {static} String USER
++ {static} String ANONYMOUS
+- <<Create>> AuthoritiesConstants()
+}
+class com.termproject.quizengine.model.Quiz {
+- Long id
+- String quizName
+- Date creationDate
+- Long created_by
+- int maxAttempts
+- Date validThru
+- int duration
+}
+interface com.termproject.quizengine.repository.UserQuizQuestionAnswerRepository {
+~ List<UserQuizQuestionAnswer> findAllByQuizId(Long)
+}
+class com.termproject.quizengine.payload.EmailPayload {
+- String email
+}
+class com.termproject.quizengine.security.UserPrincipal {
+- Long recordId
+- String name
+- String surname
+- String username
+- Collection<? extends GrantedAuthority> authorities
+- String emailAddress
+- Boolean isAdmin
+- Date creationDate
+- String password
++ <<Create>> UserPrincipal(Long,String,String,String,String,String,Boolean,Collection<? extends GrantedAuthority>)
++ boolean isAccountNonExpired()
++ boolean isAccountNonLocked()
++ boolean isCredentialsNonExpired()
++ boolean isEnabled()
+}
+interface com.termproject.quizengine.repository.UserRepository {
+~ Optional<User> findByEmailAddress(String)
+~ Optional<User> findByEmailAddressAndActivated(String,Boolean)
+~ Optional<User> findByUsernameOrEmailAddress(String,String)
+~ List<User> findByIdIn(List<Long>)
+~ Optional<User> findById(Long)
+~ User findFirstById(Long)
+~ Optional<User> findByUsername(String)
+~ Boolean existsByUsername(String)
+~ Boolean existsByEmailAddress(String)
+~ Optional<User> findOneByResetKey(String)
+~ void updatePassword(String,String)
+~ void updatePasswordForId(Long,String)
+~ void deleteKeyForUser(Long)
+~ Optional<User> getByEmailAndRecordIdNotEquals(String,Long)
+~ Optional<User> getByUsernameAndRecordIdNotEquals(String,Long)
+}
+interface com.termproject.quizengine.repository.MailLogRepository {
+~ Page<MailLog> findAll(Pageable)
+~ Page<MailLog> findByUserId(Long,Pageable)
+~ Optional<MailLog> findById(Long)
+~ Optional<MailLog> findByUuid(String)
+}
+class com.termproject.quizengine.config.AuditingConfig {
++ AuditorAware<String> auditorProvider()
+}
+class com.termproject.quizengine.config.SpringSecurityAuditAwareImpl {
++ Optional<String> getCurrentAuditor()
+}
+enum com.termproject.quizengine.enums.QuestionType {
++  SingleChoice
++  MultipleChoice
+}
+class tr.com.ceka.server.management.config.WebMvcConfig {
++ void addCorsMappings(CorsRegistry)
+}
+class com.termproject.quizengine.service.MailService {
+~ JavaMailSender javaMailSender
+~ MessageSource messageSource
+~ Environment environment
+~ MailLogRepository mailLogRepository
+- String sendMail
++ void createMailLog(User,String,String,String,boolean,boolean,String)
++ void sendEmail(String,String,String,boolean,boolean)
++ void sendEmailwithAuth(User,String,String,String,boolean,boolean,String)
++ String sendPasswordResetMail(User)
++ void sendEmailFromTemplate(User,String,String)
+}
+class com.termproject.quizengine.exception.ResourceNotFoundException {
+- String resourceName
+- String fieldName
+- Object fieldValue
++ <<Create>> ResourceNotFoundException(String,String,Object)
+}
+class com.termproject.quizengine.security.JwtAuthenticationEntryPoint {
+- {static} Logger logger
++ void commence(HttpServletRequest,HttpServletResponse,AuthenticationException)
+}
+class com.termproject.quizengine.controller.UserController {
+- UserRepository userRepository
+~ UserService userService
+~ ModelMapper modelMapper
++ UserSummary getCurrentUser(UserPrincipal)
++ UserSummary getUserProfile(String)
++ ResponseEntity<?> saveProfile(UserSummary)
+}
+class com.termproject.quizengine.dto.QuizDTO {
+- Long id
+- String quizName
+- Date creationDate
+- Long created_by
+- int maxAttempts
+- Date validThru
+- int duration
+- List<Question> quizQuestionList
+}
+class com.termproject.quizengine.security.JwtAuthenticationFilter {
+- JwtTokenProvider tokenProvider
+- CustomUserDetailsService customUserDetailsService
+- {static} Logger logger
+# void doFilterInternal(HttpServletRequest,HttpServletResponse,FilterChain)
+- String getJwtFromRequest(HttpServletRequest)
+}
+class com.termproject.quizengine.payload.QuizSubmitPayload {
+- List<Integer> userAnswers
+- List<Question> quizQuestionList
+- Long quizId
+}
+class com.termproject.quizengine.model.UserQuizQuestionAnswer {
+- Long id
+- Long userId
+- Long quizId
+- Long questionId
+- String realAnswer
+- String userAnswer
+- int currentAttempt
+- Date creationDate
+}
+class com.termproject.quizengine.payload.ChangePasswordRequest {
+- String key
+- String currentPassword
+- String password
+}
+class com.termproject.quizengine.model.UserQuizGrade {
+- Long id
+- Long userId
+- Long quizId
+- double grade
+- int lastAttempt
+- Date creationDate
+}
+class com.termproject.quizengine.utils.RandomUtil {
+- {static} int DEF_COUNT
+- {static} SecureRandom SECURE_RANDOM
+- <<Create>> RandomUtil()
+- {static} String generateRandomAlphanumericString()
+- {static} String generateRandomAlphanumericString(int)
++ {static} String generatePassword()
++ {static} String generateActivationKey()
++ {static} String generateResetKey()
++ {static} String generateRandomFileName()
++ {static} String generateRandomCode(int)
+}
+class com.termproject.quizengine.dto.UserQuizResultSelectDTO {
+- String userName
+- Long id
+- String quizName
+- Date creationDate
+- double grade
+- int lastAttempt
+- int maxAttempts
+}
+class com.termproject.quizengine.model.MailLog {
+- Long id
+- Date createdDate
+- Date sendDate
+- String to
+- String username
+- String subject
+- String content
+- String uuid
+- Boolean isSent
+- Long userId
+- User user
+}
+
+
+org.springframework.security.core.userdetails.UserDetailsService <|.. com.termproject.quizengine.service.CustomUserDetailsService
+org.springframework.data.jpa.repository.JpaRepository <|-- com.termproject.quizengine.repository.QuizQuestionRepository
+org.springframework.data.jpa.repository.JpaSpecificationExecutor <|-- com.termproject.quizengine.repository.QuizQuestionRepository
+org.springframework.data.jpa.repository.JpaRepository <|-- com.termproject.quizengine.repository.QuestionRepository
+org.springframework.data.jpa.repository.JpaSpecificationExecutor <|-- com.termproject.quizengine.repository.QuestionRepository
+org.springframework.data.jpa.repository.JpaRepository <|-- com.termproject.quizengine.repository.UserQuizGradeRepository
+org.springframework.data.jpa.repository.JpaSpecificationExecutor <|-- com.termproject.quizengine.repository.UserQuizGradeRepository
+org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter <|-- com.termproject.quizengine.config.SecurityConfig
+org.springframework.data.jpa.repository.JpaRepository <|-- com.termproject.quizengine.repository.QuizRepository
+org.springframework.data.jpa.repository.JpaSpecificationExecutor <|-- com.termproject.quizengine.repository.QuizRepository
+com.termproject.quizengine.exception.RuntimeException <|-- com.termproject.quizengine.exception.WrongUserNameOrPasswordException
+org.springframework.boot.web.servlet.support.SpringBootServletInitializer <|-- com.termproject.quizengine.QuizEngineApplication
+org.springframework.data.jpa.repository.JpaRepository <|-- com.termproject.quizengine.repository.UserQuizQuestionAnswerRepository
+org.springframework.data.jpa.repository.JpaSpecificationExecutor <|-- com.termproject.quizengine.repository.UserQuizQuestionAnswerRepository
+org.springframework.security.core.userdetails.UserDetails <|.. com.termproject.quizengine.security.UserPrincipal
+org.springframework.data.jpa.repository.JpaRepository <|-- com.termproject.quizengine.repository.UserRepository
+org.springframework.data.jpa.repository.JpaSpecificationExecutor <|-- com.termproject.quizengine.repository.UserRepository
+org.springframework.data.jpa.repository.JpaRepository <|-- com.termproject.quizengine.repository.MailLogRepository
+org.springframework.data.domain.AuditorAware <|.. com.termproject.quizengine.config.SpringSecurityAuditAwareImpl
+org.springframework.web.servlet.config.annotation.WebMvcConfigurer <|.. tr.com.ceka.server.management.config.WebMvcConfig
+com.termproject.quizengine.exception.RuntimeException <|-- com.termproject.quizengine.exception.ResourceNotFoundException
+org.springframework.security.web.AuthenticationEntryPoint <|.. com.termproject.quizengine.security.JwtAuthenticationEntryPoint
+org.springframework.web.filter.OncePerRequestFilter <|-- com.termproject.quizengine.security.JwtAuthenticationFilter
+@enduml
