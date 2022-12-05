@@ -1,11 +1,11 @@
 package com.termproject.quizengine.model;
 
+import com.termproject.quizengine.dto.QuizDTO;
 import lombok.Data;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Entity
@@ -47,4 +47,16 @@ public class Quiz {
 //    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL)
 //    @JoinColumn(name = "quiz_id")
 //    private List<QuizQuestion> quizQuestionList = new ArrayList<>();
+
+
+    public static Quiz toQuiz(Quiz quiz , QuizDTO quizDTO){
+
+        quiz.setId(quizDTO.getId());
+        quiz.setQuizName(quizDTO.getQuizName());
+        quiz.setMaxAttempts(quizDTO.getMaxAttempts());
+        quiz.setValidThru(quizDTO.getValidThru());
+        quiz.setDuration(quizDTO.getDuration());
+
+        return quiz;
+    }
 }

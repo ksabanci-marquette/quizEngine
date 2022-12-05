@@ -1,13 +1,14 @@
 package com.termproject.quizengine.controller;
 
 import com.termproject.quizengine.dto.QuizDTO;
+import com.termproject.quizengine.dto.UserQuizStat2DTO;
+import com.termproject.quizengine.dto.UserQuizStat3DTO;
 import com.termproject.quizengine.exception.ResourceNotFoundException;
 import com.termproject.quizengine.model.*;
 import com.termproject.quizengine.payload.QuizSubmitPayload;
 import com.termproject.quizengine.repository.*;
 import com.termproject.quizengine.security.CurrentUser;
 import com.termproject.quizengine.security.UserPrincipal;
-import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,13 +21,11 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.sql.JDBCType.NULL;
 
 
 @RestController
@@ -63,6 +62,51 @@ public class QuizController {
         log.debug("REST request to get all ");
         try {
             return new ResponseEntity<>(quizRepository.findAll(), HttpStatus.OK);
+        } catch (Exception ex) {
+            return new ResponseEntity<>( ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/stats/{id}")
+    public ResponseEntity<?> getStats(@NotNull @PathVariable Long id) {
+
+        try {
+            return new ResponseEntity<>(quizRepository.findQuizStats(id), HttpStatus.OK);
+        } catch (Exception ex) {
+            return new ResponseEntity<>( ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/stats2/{id}")
+    public ResponseEntity<?> getStats2(@NotNull @PathVariable Long id) {
+
+        try {
+            List<UserQuizStat2DTO> stats2 = quizRepository.findQuizStats2(id)
+                    .stream().map(item -> new UserQuizStat2DTO(
+                            item.get(0).toString(),
+                            item.get(1).toString(),
+                            item.get(2).toString()))
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(stats2, HttpStatus.OK);
+        } catch (Exception ex) {
+            return new ResponseEntity<>( ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/stats3/{id}")
+    public ResponseEntity<?> getStats3(@NotNull @PathVariable Long id) {
+
+        try {
+            List<UserQuizStat3DTO> stats3 = quizRepository.findQuizStats3(id)
+                    .stream().map(item -> new UserQuizStat3DTO(
+                            item.get(0).toString(),
+                            item.get(1).toString(),
+                            item.get(2).toString(),
+                            item.get(3)==null ? "NOT TAKEN" : item.get(3).toString()))
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(stats3, HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>( ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -112,6 +156,48 @@ public class QuizController {
         }
     }
 
+    @Transactional
+    @PostMapping("/save-with-questions")
+    public ResponseEntity<?> saveWithQuestions(@RequestBody @Valid @NotNull QuizDTO quizDTO,
+                                               @CurrentUser UserPrincipal userPrincipal) {
+        log.debug("REST request to save ");
+        try {
+            Quiz quiz = new Quiz();
+            quiz = Quiz.toQuiz(quiz, quizDTO);
+            List<Question> quizQuestionList = quizDTO.getQuizQuestionList();
+            List<Long> newQuestionIds = quizDTO.getQuizQuestionList().stream()
+                    .map(Question::getId).collect(Collectors.toList());
+            List<Long> currentQuestionIds = quizQuestionRepository.findAllByQuizId(quiz.getId())
+                    .stream().map(QuizQuestion::getQuestionId).collect(Collectors.toList());
+
+            List<Long> idsToRemove = currentQuestionIds.stream().filter(e -> !newQuestionIds.contains(e))
+                    .collect(Collectors.toList());
+
+            List<Long> idsToSave = newQuestionIds.stream().filter(e -> !currentQuestionIds.contains(e))
+                    .collect(Collectors.toList());
+            //
+            quiz.setCreated_by(userPrincipal.getRecordId());
+            quiz.setCreationDate(Date.from(Instant.now()));
+            quiz = quizRepository.saveAndFlush(quiz);
+
+            if(idsToRemove.size() != 0){
+                quizQuestionRepository.deleteAllByQuestionIdIn(idsToRemove);
+            }
+
+            for(Long questionId: idsToSave){
+                QuizQuestion quizQuestion = new QuizQuestion();
+                quizQuestion.setQuizId(quiz.getId());
+                quizQuestion.setQuestionId(questionId);
+                quizQuestion = quizQuestionRepository.save(quizQuestion);
+            }
+
+            return ResponseEntity.ok().body("Success");
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("An error occured!");
+        }
+    }
+
     @PostMapping("/save")
     public ResponseEntity<?> saveOne(@RequestBody @Valid @NotNull Quiz quiz) {
         log.debug("REST request to save ");
@@ -123,6 +209,8 @@ public class QuizController {
             return ResponseEntity.badRequest().body("An error occured!");
         }
     }
+
+
 
     @Transactional
     @PostMapping("/submit")
@@ -144,10 +232,11 @@ public class QuizController {
                 findMaxAttemptbyQuizandUser(userPrincipal.getRecordId(),quizSubmitPayload.getQuizId()).
                 orElse(0) + 1;
 
-        UserQuizQuestionAnswer userQuizQuestionAnswer= new UserQuizQuestionAnswer();
+
 
         try {
             for (Question question : quizSubmitPayload.getQuizQuestionList()) {
+                UserQuizQuestionAnswer userQuizQuestionAnswer= new UserQuizQuestionAnswer();
                 userQuizQuestionAnswer.setUserId(user.getId());
                 userQuizQuestionAnswer.setQuizId(quizSubmitPayload.getQuizId());
                 userQuizQuestionAnswer.setQuestionId(question.getId());

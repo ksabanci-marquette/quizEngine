@@ -1,11 +1,8 @@
 package com.termproject.quizengine.dto;
 
 import com.termproject.quizengine.model.Question;
-import com.termproject.quizengine.model.QuizQuestion;
 import lombok.Data;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,5 +18,6 @@ public class QuizDTO {
     private Date validThru;
     private int duration;
     private List<Question> quizQuestionList = new ArrayList<>();
+
 
 }
