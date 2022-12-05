@@ -24,8 +24,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -40,7 +49,7 @@ public class AuthController {
     @Autowired
     JwtTokenProvider tokenProvider;
 
-//    @Autowired
+    //    @Autowired
 //    MailService mailService;
 //
     @Autowired
@@ -54,8 +63,28 @@ public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
+    private static Map<String, List<Instant>> ipAddressList = new HashMap<>();
+
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        List<Instant> timeList = new ArrayList<>();
+
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+
+        if ( ipAddressList.get(request.getRemoteAddr()) == null){
+            timeList.add(Instant.now());
+            ipAddressList.put(request.getRemoteAddr(), timeList);
+
+        } else {
+            timeList = ipAddressList.get(request.getRemoteAddr());
+            timeList = timeList.stream().filter(item -> item.isAfter(Instant.now().minusSeconds(60))).collect(Collectors.toList());
+            timeList.add(Instant.now());
+            ipAddressList.remove(request.getRemoteAddr());
+            ipAddressList.put(request.getRemoteAddr(), timeList);
+            if(timeList.size()>5){
+                return ResponseEntity.badRequest().body("You tried more than 5 times in 1 minutes. Please try again Later!!");
+            }
+        }
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -75,7 +104,7 @@ public class AuthController {
         try {
             userService.updatePassword(changePasswordRequest);
         } catch (Exception e) {
- //           throw new RuntimeException("Unsuccesfull !");
+            //           throw new RuntimeException("Unsuccesfull !");
             return ResponseEntity.badRequest().body( "Wrong Key provided");
 
         }
